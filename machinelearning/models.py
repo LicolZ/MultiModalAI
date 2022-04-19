@@ -71,8 +71,6 @@ class PerceptronModel(object):
                 return
 
 
-        "*** YOUR CODE HERE ***"
-
 class RegressionModel(object):
     """
     A neural network model for approximating a function that maps from real
@@ -81,6 +79,21 @@ class RegressionModel(object):
     """
     def __init__(self):
         # Initialize your model parameters here
+
+        # I think this refers to the hyperparameters
+
+        # Hidden layer sizes: between 10 and 400.
+        # Batch size: between 1 and the size of the dataset. For Q2 and Q3, we require that total size of the dataset be evenly divisible by the batch size.
+        # Learning rate: between 0.001 and 1.0.
+        # Number of hidden layers: between 1 and 3.
+        self.num_hidden_layers = 2
+        self.num_features = 10
+        self.batch_size = 4
+        self.learning_rate = -0.9
+        self.bias = 0
+        self.epsilon = 0.02
+        self.weights = nn.Parameter(self.batch_size, self.batch_size)
+
         "*** YOUR CODE HERE ***"
 
     def run(self, x):
@@ -92,6 +105,22 @@ class RegressionModel(object):
         Returns:
             A node with shape (batch_size x 1) containing predicted y-values
         """
+        print(x)
+        # x is a Constant object
+        # return a prediction on x
+        
+        # Input function
+
+        ### Layer 1: Linear transformation ###
+        predicted_y = nn.Linear(x, self.weights)
+        ### Layer 2: Activation function ###
+        predicted_y = nn.ReLU(predicted_y)
+        print(predicted_y)
+
+        return predicted_y
+
+        # Start with two layers
+
         "*** YOUR CODE HERE ***"
 
     def get_loss(self, x, y):
@@ -104,12 +133,44 @@ class RegressionModel(object):
                 to be used for training
         Returns: a loss node
         """
+
+        # Loss function: nn.SquareLoss(a, b)
+            # Usage: nn.SquareLoss(a, b)
+            # Inputs:
+            #     a: a Node with shape (batch_size x dim)
+            #     b: a Node with shape (batch_size x dim)
+            # Output: a scalar Node (containing a single floating-point number) 
+        return nn.SquareLoss(x, y)
+
         "*** YOUR CODE HERE ***"
 
     def train(self, dataset):
         """
         Trains the model.
         """
+        epsilon = 0.02
+        error = 0
+
+        for x, y in dataset.iterate_once(self.batch_size):
+            
+            # get a prediction
+            predicted_y = self.run(x)
+
+            # compute the loss
+            loss = self.get_loss(predicted_y, y)
+
+            # get gradients of the loss
+            # update x or weights accordingly idk which
+
+            self.weights = self.weights + self.learning_rate*(nn.gradients(loss, ))
+
+            #
+
+
+
+        if error <= epsilon:
+            return
+
         "*** YOUR CODE HERE ***"
 
 class DigitClassificationModel(object):
@@ -165,6 +226,9 @@ class DigitClassificationModel(object):
         """
         Trains the model.
         """
+
+        
+
         "*** YOUR CODE HERE ***"
 
 class LanguageIDModel(object):
