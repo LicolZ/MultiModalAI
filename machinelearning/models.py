@@ -105,24 +105,22 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
-        print(x)
+
         # x is a Constant object
         # return a prediction on x
         
         # Input function
 
         ### Layer 1: Linear transformation ###
-        predicted_y = nn.Linear(x, self.weights)
         ### Layer 2: Activation function ###
+        
+        predicted_y = nn.AddBias(nn.Linear(x, self.weights), self.bias)
+        
         predicted_y = nn.ReLU(predicted_y)
-        print(predicted_y)
 
         return predicted_y
 
-        # Start with two layers
-
-        
-
+        #two sets of weights & biases
 
     def get_loss(self, x, y):
         """
@@ -143,7 +141,7 @@ class RegressionModel(object):
             # Output: a scalar Node (containing a single floating-point number) 
         
         "*** YOUR CODE HERE ***" 
-        return nn.SquareLoss(x, y)
+        return nn.SquareLoss(self.run(x), y)
 
     def train(self, dataset):
         """
@@ -165,13 +163,10 @@ class RegressionModel(object):
             # get gradients of the loss
             # update x or weights accordingly idk which
 
-            self.weights = self.weights + self.learning_rate*(nn.gradients(loss, ))
+            self.weights.update(nn.gradients(loss, [self.weights, self.biases]), self.learning_rate)
 
         if error <= epsilon:
             return
-
-        
-
 
 class DigitClassificationModel(object):
     """
@@ -190,6 +185,14 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.num_hidden_layers = 2
+        self.num_features = 10
+        self.batch_size = 4
+        self.learning_rate = -0.9
+        self.bias = 0
+        self.epsilon = 0.02
+        self.weights = nn.Parameter(self.batch_size, self.batch_size)
+
 
     def run(self, x):
         """
@@ -207,6 +210,7 @@ class DigitClassificationModel(object):
         """
         "*** YOUR CODE HERE ***"
 
+
     def get_loss(self, x, y):
         """
         Computes the loss for a batch of examples.
@@ -221,15 +225,15 @@ class DigitClassificationModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        return nn.SoftmaxLoss(x, y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
 
-        
-
         "*** YOUR CODE HERE ***"
+
 
 class LanguageIDModel(object):
     """
@@ -296,6 +300,7 @@ class LanguageIDModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        return 
 
     def train(self, dataset):
         """
