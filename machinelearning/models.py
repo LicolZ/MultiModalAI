@@ -210,6 +210,11 @@ class DigitClassificationModel(object):
         """
         "*** YOUR CODE HERE ***"
 
+        predicted_y = nn.AddBias(nn.Linear(x, self.weights), self.bias)
+        
+        predicted_y = nn.ReLU(predicted_y)
+
+        return predicted_y
 
     def get_loss(self, x, y):
         """
@@ -225,7 +230,7 @@ class DigitClassificationModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-        return nn.SoftmaxLoss(x, y)
+        return nn.SoftmaxLoss(self.run(x), y)
 
     def train(self, dataset):
         """
@@ -234,6 +239,25 @@ class DigitClassificationModel(object):
 
         "*** YOUR CODE HERE ***"
 
+        accuracy_wanted = 0.97
+        validation_accuracy = dataset.get_validation_accuracy()
+
+        for x, y in dataset.iterate_once(self.batch_size):
+            
+            # get a prediction
+            predicted_y = self.run(x)
+
+            # compute the loss
+            loss = self.get_loss(predicted_y, y)
+
+            # get gradients of the loss
+            # update x or weights accordingly idk which
+
+            self.weights.update(nn.gradients(loss, [self.weights, self.biases]), self.learning_rate)
+
+        if validation_accuracy >= accuracy_wanted:
+            return
+            
 
 class LanguageIDModel(object):
     """
