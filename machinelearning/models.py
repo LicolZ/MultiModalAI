@@ -80,6 +80,7 @@ class RegressionModel(object):
     def __init__(self):
         # Initialize your model parameters here
 
+        "*** YOUR CODE HERE ***"
         # I think this refers to the hyperparameters
 
         # Hidden layer sizes: between 10 and 400.
@@ -94,8 +95,6 @@ class RegressionModel(object):
         self.epsilon = 0.02
         self.weights = nn.Parameter(self.batch_size, self.batch_size)
 
-        "*** YOUR CODE HERE ***"
-
     def run(self, x):
         """
         Runs the model for a batch of examples.
@@ -105,6 +104,7 @@ class RegressionModel(object):
         Returns:
             A node with shape (batch_size x 1) containing predicted y-values
         """
+        "*** YOUR CODE HERE ***"
         print(x)
         # x is a Constant object
         # return a prediction on x
@@ -121,7 +121,8 @@ class RegressionModel(object):
 
         # Start with two layers
 
-        "*** YOUR CODE HERE ***"
+        
+
 
     def get_loss(self, x, y):
         """
@@ -140,14 +141,16 @@ class RegressionModel(object):
             #     a: a Node with shape (batch_size x dim)
             #     b: a Node with shape (batch_size x dim)
             # Output: a scalar Node (containing a single floating-point number) 
+        
+        "*** YOUR CODE HERE ***" 
         return nn.SquareLoss(x, y)
-
-        "*** YOUR CODE HERE ***"
 
     def train(self, dataset):
         """
         Trains the model.
         """
+
+        "*** YOUR CODE HERE ***"
         epsilon = 0.02
         error = 0
 
@@ -164,14 +167,11 @@ class RegressionModel(object):
 
             self.weights = self.weights + self.learning_rate*(nn.gradients(loss, ))
 
-            #
-
-
-
         if error <= epsilon:
             return
 
-        "*** YOUR CODE HERE ***"
+        
+
 
 class DigitClassificationModel(object):
     """
