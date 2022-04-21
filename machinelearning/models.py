@@ -153,19 +153,16 @@ class RegressionModel(object):
         """
 
         "*** YOUR CODE HERE ***"
-        epsilon = 0.02
+        epsilon = 0.002
 
         for x, y in dataset.iterate_forever(self.batch_size):
 
-            # compute the loss
-            loss = self.get_loss(x, y)
-
-            if nn.as_scalar(loss) <= epsilon:
-                print(nn.as_scalar(loss))
-                return
 
             # get gradients of the loss
             # update biases and weights accordingly
+            # compute the loss
+            loss = self.get_loss(x, y)
+
 
             gw1, gb1, gw2, gb2 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2])
 
@@ -177,6 +174,9 @@ class RegressionModel(object):
 
             self.bias2.update(gb2, self.learning_rate)
 
+            if nn.as_scalar(loss) <= epsilon:
+                print(nn.as_scalar(loss))
+                return
 
 class DigitClassificationModel(object):
     """
