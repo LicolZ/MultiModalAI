@@ -257,7 +257,7 @@ class DigitClassificationModel(object):
 
         if validation_accuracy >= accuracy_wanted:
             return
-            
+
 
 class LanguageIDModel(object):
     """
