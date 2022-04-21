@@ -90,10 +90,12 @@ class RegressionModel(object):
         self.num_hidden_layers = 2
         self.num_features = 10
         self.batch_size = 4
-        self.learning_rate = -0.9
-        self.bias = 0
+        self.learning_rate = -0.05
+        self.bias1 = nn.Parameter(1, 320)
+        self.bias2 = nn.Parameter(1, 1)
         self.epsilon = 0.02
-        self.weights = nn.Parameter(self.batch_size, self.batch_size)
+        self.weights1 = nn.Parameter(1, 320)
+        self.weights2 = nn.Parameter(320, 1)
 
     def run(self, x):
         """
@@ -114,11 +116,13 @@ class RegressionModel(object):
         ### Layer 1: Linear transformation ###
         ### Layer 2: Activation function ###
         
-        predicted_y = nn.AddBias(nn.Linear(x, self.weights), self.bias)
+        predicted_y1 = nn.AddBias(nn.Linear(x, self.weights1), self.bias1)
         
-        predicted_y = nn.ReLU(predicted_y)
+        predicted_y1 = nn.ReLU(predicted_y1)
 
-        return predicted_y
+        predicted_y2 = nn.AddBias(nn.Linear(predicted_y1, self.weights2), self.bias2)
+        
+        return predicted_y2
 
         #two sets of weights & biases
 
@@ -150,23 +154,29 @@ class RegressionModel(object):
 
         "*** YOUR CODE HERE ***"
         epsilon = 0.02
-        error = 0
 
-        for x, y in dataset.iterate_once(self.batch_size):
-            
-            # get a prediction
-            predicted_y = self.run(x)
+        for x, y in dataset.iterate_forever(self.batch_size):
 
             # compute the loss
-            loss = self.get_loss(predicted_y, y)
+            loss = self.get_loss(x, y)
+
+            if nn.as_scalar(loss) <= epsilon:
+                print(nn.as_scalar(loss))
+                return
 
             # get gradients of the loss
-            # update x or weights accordingly idk which
+            # update biases and weights accordingly
 
-            self.weights.update(nn.gradients(loss, [self.weights, self.biases]), self.learning_rate)
+            gw1, gb1, gw2, gb2 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2])
 
-        if error <= epsilon:
-            return
+            self.weights1.update(gw1, self.learning_rate)
+
+            self.bias1.update(gb1, self.learning_rate)
+
+            self.weights2.update(gw2, self.learning_rate)
+
+            self.bias2.update(gb2, self.learning_rate)
+
 
 class DigitClassificationModel(object):
     """
@@ -188,11 +198,15 @@ class DigitClassificationModel(object):
         self.num_hidden_layers = 2
         self.num_features = 10
         self.batch_size = 4
-        self.learning_rate = -0.9
-        self.bias = 0
-        self.epsilon = 0.02
-        self.weights = nn.Parameter(self.batch_size, self.batch_size)
+        self.learning_rate = -0.5
 
+        #input = 20*20
+        #output = 10
+        self.bias1 = nn.Parameter(28*28, 210)
+        self.bias2 = nn.Parameter(28*28, 10)
+        self.epsilon = 0.02
+        self.weights1 = nn.Parameter(28*28, 210)
+        self.weights2 = nn.Parameter(200, 10)
 
     def run(self, x):
         """
@@ -243,22 +257,27 @@ class DigitClassificationModel(object):
         validation_accuracy = dataset.get_validation_accuracy()
 
         for x, y in dataset.iterate_once(self.batch_size):
-            
-            # get a prediction
-            predicted_y = self.run(x)
 
             # compute the loss
-            loss = self.get_loss(predicted_y, y)
+            loss = self.get_loss(x, y)
+
+            if validation_accuracy >= accuracy_wanted:
+                return
 
             # get gradients of the loss
             # update x or weights accordingly idk which
 
-            self.weights.update(nn.gradients(loss, [self.weights, self.biases]), self.learning_rate)
+            gw1, gb1, gw2, gb2 = nn.gradients(loss, [self.weights1, self.biases1, self.weights2, self.biases2])
 
-        if validation_accuracy >= accuracy_wanted:
-            return
+            self.weights1.update(gw1, self.learning_rate)
 
+            self.biases1.update(gb1, self.learning_rate)
 
+            self.weights2.update(gw2, self.learning_rate)
+
+            self.biases2.update(gb2, self.learning_rate)
+
+        
 class LanguageIDModel(object):
     """
     A model for language identification at a single-word granularity.
