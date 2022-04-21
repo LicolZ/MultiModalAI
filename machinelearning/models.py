@@ -195,18 +195,24 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
-        self.num_hidden_layers = 2
+
+        ## I think the issue rn is mostly how we're choosing our hyperparameters
+        ## Playing around with the batch size, learning rate, and the dimensions of the in-between layers should do the trick
+
+        self.num_hidden_layers = 3
         self.num_features = 10
-        self.batch_size = 4
-        self.learning_rate = -0.5
+        self.batch_size = 16
+        self.learning_rate = -0.175
 
         #input = 20*20
         #output = 10
-        self.bias1 = nn.Parameter(28*28, 210)
-        self.bias2 = nn.Parameter(28*28, 10)
+        self.bias1 = nn.Parameter(1, 32)
+        self.bias2 = nn.Parameter(1, 16)
+        self.bias3 = nn.Parameter(1, 10)
         self.epsilon = 0.02
-        self.weights1 = nn.Parameter(28*28, 210)
-        self.weights2 = nn.Parameter(200, 10)
+        self.weights1 = nn.Parameter(28*28, 32)
+        self.weights2 = nn.Parameter(32, 16)
+        self.weights3 = nn.Parameter(16, 10)
 
     def run(self, x):
         """
@@ -224,11 +230,20 @@ class DigitClassificationModel(object):
         """
         "*** YOUR CODE HERE ***"
 
-        predicted_y = nn.AddBias(nn.Linear(x, self.weights), self.bias)
-        
-        predicted_y = nn.ReLU(predicted_y)
+        ## Note: I added an extra layer in here just to see if it helped.
+        # So far it hasn't done much; the thing is still floating at around 96%
 
-        return predicted_y
+        predicted_y1 = nn.AddBias(nn.Linear(x, self.weights1), self.bias1)
+        
+        predicted_y1 = nn.ReLU(predicted_y1)
+
+        predicted_y2 = nn.AddBias(nn.Linear(predicted_y1, self.weights2), self.bias2)
+
+        predicted_y2 = nn.ReLU(predicted_y2)
+        
+        predicted_y3 = nn.AddBias(nn.Linear(predicted_y2, self.weights3), self.bias3)
+
+        return predicted_y3
 
     def get_loss(self, x, y):
         """
@@ -253,29 +268,43 @@ class DigitClassificationModel(object):
 
         "*** YOUR CODE HERE ***"
 
-        accuracy_wanted = 0.97
+        accuracy_wanted = 0.98
         validation_accuracy = dataset.get_validation_accuracy()
 
-        for x, y in dataset.iterate_once(self.batch_size):
 
+
+        for x, y in dataset.iterate_forever(self.batch_size):
             # compute the loss
             loss = self.get_loss(x, y)
 
-            if validation_accuracy >= accuracy_wanted:
-                return
+
+
 
             # get gradients of the loss
             # update x or weights accordingly idk which
 
-            gw1, gb1, gw2, gb2 = nn.gradients(loss, [self.weights1, self.biases1, self.weights2, self.biases2])
+            ## This is the version for the two layers
+            #gw1, gb1, gw2, gb2 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2])
+
+            ## This is the version for three layers
+            gw1, gb1, gw2, gb2, gw3, gb3 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2, self.weights3, self.bias3])
 
             self.weights1.update(gw1, self.learning_rate)
 
-            self.biases1.update(gb1, self.learning_rate)
+            self.bias1.update(gb1, self.learning_rate)
 
             self.weights2.update(gw2, self.learning_rate)
 
-            self.biases2.update(gb2, self.learning_rate)
+            self.bias2.update(gb2, self.learning_rate)
+
+            ## Comment these out if you want to use only two layers
+            self.weights3.update(gw3, self.learning_rate)
+
+            self.bias3.update(gb3, self.learning_rate)
+
+            
+            if validation_accuracy >= accuracy_wanted:
+                return
 
         
 class LanguageIDModel(object):
