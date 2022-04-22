@@ -201,22 +201,22 @@ class DigitClassificationModel(object):
 
         self.num_hidden_layers = 3
         self.num_features = 10
-        self.batch_size = 16
-        self.learning_rate = -0.175
+        self.batch_size = 10
+        self.learning_rate = -0.07
 
         #input = 20*20
         #output = 10
-        self.bias1 = nn.Parameter(1, 32)
-        self.bias2 = nn.Parameter(1, 16)
-        self.bias3 = nn.Parameter(1, 10)
+        self.bias1 = nn.Parameter(1, 80)
+        self.bias2 = nn.Parameter(1, 10)
+        # self.bias3 = nn.Parameter(1, 10)
         self.epsilon = 0.02
-        self.weights1 = nn.Parameter(28*28, 32)
-        self.weights2 = nn.Parameter(32, 16)
-        self.weights3 = nn.Parameter(16, 10)
+        self.weights1 = nn.Parameter(28*28, 80)
+        self.weights2 = nn.Parameter(80, 10)
+        # self.weights3 = nn.Parameter(16, 10)
 
     def run(self, x):
-        """
-        Runs the model for a batch of examples.
+        
+        """Runs the model for a batch of examples.
 
         Your model should predict a node with shape (batch_size x 10),
         containing scores. Higher scores correspond to greater probability of
@@ -239,11 +239,11 @@ class DigitClassificationModel(object):
 
         predicted_y2 = nn.AddBias(nn.Linear(predicted_y1, self.weights2), self.bias2)
 
-        predicted_y2 = nn.ReLU(predicted_y2)
+        # predicted_y2 = nn.ReLU(predicted_y2)
         
-        predicted_y3 = nn.AddBias(nn.Linear(predicted_y2, self.weights3), self.bias3)
+        # predicted_y3 = nn.AddBias(nn.Linear(predicted_y2, self.weights3), self.bias3)
 
-        return predicted_y3
+        return predicted_y2
 
     def get_loss(self, x, y):
         """
@@ -268,10 +268,9 @@ class DigitClassificationModel(object):
 
         "*** YOUR CODE HERE ***"
 
+
+
         accuracy_wanted = 0.98
-        validation_accuracy = dataset.get_validation_accuracy()
-
-
 
         for x, y in dataset.iterate_forever(self.batch_size):
             # compute the loss
@@ -284,10 +283,10 @@ class DigitClassificationModel(object):
             # update x or weights accordingly idk which
 
             ## This is the version for the two layers
-            #gw1, gb1, gw2, gb2 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2])
+            gw1, gb1, gw2, gb2 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2])
 
             ## This is the version for three layers
-            gw1, gb1, gw2, gb2, gw3, gb3 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2, self.weights3, self.bias3])
+            # gw1, gb1, gw2, gb2, gw3, gb3 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2, self.weights3, self.bias3])
 
             self.weights1.update(gw1, self.learning_rate)
 
@@ -298,10 +297,11 @@ class DigitClassificationModel(object):
             self.bias2.update(gb2, self.learning_rate)
 
             ## Comment these out if you want to use only two layers
-            self.weights3.update(gw3, self.learning_rate)
+            # self.weights3.update(gw3, self.learning_rate)
 
-            self.bias3.update(gb3, self.learning_rate)
+            # self.bias3.update(gb3, self.learning_rate)
 
+            validation_accuracy = dataset.get_validation_accuracy()
             
             if validation_accuracy >= accuracy_wanted:
                 return
