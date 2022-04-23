@@ -1,3 +1,4 @@
+from re import S
 import nn
 
 class PerceptronModel(object):
@@ -322,7 +323,24 @@ class LanguageIDModel(object):
         self.num_chars = 47
         self.languages = ["English", "Spanish", "Finnish", "Dutch", "Polish"]
 
-        # Initialize your model parameters here
+
+
+
+        ## Hyperparameters ##
+
+        self.batch_size = 10
+        self.hidden_size = 16
+
+        ## Other ##
+
+        self.W1 = nn.Parameter(self.num_chars, self.hidden_size)
+        self.W_hidden1 = nn.Parameter(self.hidden_size, 5)
+        self.W2 = nn.Parameter(self.hidden_size, 5)
+        self.W_hidden2 = nn.Parameter(self.hidden_size, 5)
+        self.bias1 = nn.Parameter(1, 16)
+        self.bias2 = nn.Parameter(1, 5)
+        
+
         "*** YOUR CODE HERE ***"
 
     def run(self, xs):
@@ -355,6 +373,40 @@ class LanguageIDModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        # Case: "cat"
+        # xs[0] = "c"
+        # xs[1] = "a"
+        # xs[2] = "t"
+
+        # Input dimension: batch_size x hidden_size
+        # Intermediate dimension: hidden_size x 5
+        # Output dimension: batch_size x 5
+
+        # xs = a list of length L
+ 
+
+        
+        ## F initial (first layer) ##
+
+        h = nn.AddBias(nn.Linear(xs[0], self.W1), self.bias1)
+
+        
+        h = nn.ReLU(h)
+
+
+        ### Subnetwork (RNN) ###
+
+        for x_value in xs[1:]:
+            
+            # do f(x, h)
+            # f --> the weighted sum of x[i] and the previous h
+            h = nn.Add(nn.Linear(x_value, self.W1), nn.Linear(h, self.W_hidden1))
+
+            h = nn.ReLU(h)
+
+        ### Second layer ###
+
+        return h # A node with shape (batch_size, 5) containing predicted scores (logits)
 
     def get_loss(self, xs, y):
         """
@@ -371,10 +423,50 @@ class LanguageIDModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-        return 
+
+        return nn.SoftmaxLoss(self.run(xs), y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+
+        accuracy_wanted = 0.83
+        while True:
+
+            for x, y in dataset.iterate_once(self.batch_size):
+                # compute the loss
+                loss = self.get_loss(x, y)
+
+
+                # get gradients of the loss
+                # update x or weights accordingly idk which
+
+                ## This is the version for the two layers
+                gw1, gb1, gw2, gb2, h1, h2 = nn.gradients(loss, [self.W1, self.bias1, self.W2, self.bias2, self.W_hidden1, self.W_hidden2])
+
+                ## This is the version for three layers
+                # gw1, gb1, gw2, gb2, gw3, gb3 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2, self.weights3, self.bias3])
+
+                self.W1.update(gw1, self.learning_rate)
+
+                self.bias1.update(gb1, self.learning_rate)
+
+                self.W2.update(gw2, self.learning_rate)
+
+                self.bias2.update(gb2, self.learning_rate)
+
+                self.W_hidden1.update(h1, self.learning_rate)
+                
+                self.W_hidden2.update(h2, self.learning_rate)
+
+                ## Comment these out if you want to use only two layers
+                # self.weights3.update(gw3, self.learning_rate)
+
+                # self.bias3.update(gb3, self.learning_rate)
+
+            validation_accuracy = dataset.get_validation_accuracy()
+            
+            if validation_accuracy >= accuracy_wanted:
+                return
