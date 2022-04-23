@@ -268,45 +268,44 @@ class DigitClassificationModel(object):
 
         "*** YOUR CODE HERE ***"
 
-
-
         accuracy_wanted = 0.98
+        while True:
 
-        for x, y in dataset.iterate_forever(self.batch_size):
-            # compute the loss
-            loss = self.get_loss(x, y)
+            for x, y in dataset.iterate_once(self.batch_size):
+                # compute the loss
+                loss = self.get_loss(x, y)
 
 
 
 
-            # get gradients of the loss
-            # update x or weights accordingly idk which
+                # get gradients of the loss
+                # update x or weights accordingly idk which
 
-            ## This is the version for the two layers
-            gw1, gb1, gw2, gb2 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2])
+                ## This is the version for the two layers
+                gw1, gb1, gw2, gb2 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2])
 
-            ## This is the version for three layers
-            # gw1, gb1, gw2, gb2, gw3, gb3 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2, self.weights3, self.bias3])
+                ## This is the version for three layers
+                # gw1, gb1, gw2, gb2, gw3, gb3 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2, self.weights3, self.bias3])
 
-            self.weights1.update(gw1, self.learning_rate)
+                self.weights1.update(gw1, self.learning_rate)
 
-            self.bias1.update(gb1, self.learning_rate)
+                self.bias1.update(gb1, self.learning_rate)
 
-            self.weights2.update(gw2, self.learning_rate)
+                self.weights2.update(gw2, self.learning_rate)
 
-            self.bias2.update(gb2, self.learning_rate)
+                self.bias2.update(gb2, self.learning_rate)
 
-            ## Comment these out if you want to use only two layers
-            # self.weights3.update(gw3, self.learning_rate)
+                ## Comment these out if you want to use only two layers
+                # self.weights3.update(gw3, self.learning_rate)
 
-            # self.bias3.update(gb3, self.learning_rate)
+                # self.bias3.update(gb3, self.learning_rate)
 
             validation_accuracy = dataset.get_validation_accuracy()
             
             if validation_accuracy >= accuracy_wanted:
                 return
 
-        
+            
 class LanguageIDModel(object):
     """
     A model for language identification at a single-word granularity.
