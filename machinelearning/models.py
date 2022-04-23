@@ -328,17 +328,19 @@ class LanguageIDModel(object):
 
         ## Hyperparameters ##
 
-        self.batch_size = 10
-        self.hidden_size = 16
+        self.batch_size = 20
+        self.hidden_size = 28
+        self.learning_rate = -0.07
 
         ## Other ##
 
-        self.W1 = nn.Parameter(self.num_chars, self.hidden_size)
-        self.W_hidden1 = nn.Parameter(self.hidden_size, 5)
-        self.W2 = nn.Parameter(self.hidden_size, 5)
-        self.W_hidden2 = nn.Parameter(self.hidden_size, 5)
-        self.bias1 = nn.Parameter(1, 16)
-        self.bias2 = nn.Parameter(1, 5)
+        self.W_x = nn.Parameter(self.num_chars, self.hidden_size)
+        self.W_hidden = nn.Parameter(self.hidden_size, self.hidden_size)
+        self.weights = nn.Parameter(self.hidden_size, 5)
+
+        # self.W2 = nn.Parameter(self.hidden_size, 5)
+        # self.W_hidden2 = nn.Parameter(self.hidden_size, 5)
+        # self.bias2 = nn.Parameter(1, 5)
         
 
         "*** YOUR CODE HERE ***"
@@ -388,10 +390,10 @@ class LanguageIDModel(object):
         
         ## F initial (first layer) ##
 
-        h = nn.AddBias(nn.Linear(xs[0], self.W1), self.bias1)
 
+        z = nn.Linear(xs[0], self.W_x)
         
-        h = nn.ReLU(h)
+        h = nn.ReLU(z)
 
 
         ### Subnetwork (RNN) ###
@@ -400,11 +402,16 @@ class LanguageIDModel(object):
             
             # do f(x, h)
             # f --> the weighted sum of x[i] and the previous h
-            h = nn.Add(nn.Linear(x_value, self.W1), nn.Linear(h, self.W_hidden1))
+            x_i = nn.Linear(x_value, self.W_x)
+            h_i = nn.Linear(h, self.W_hidden)
+            z = nn.Add(x_i, h_i)
+            h = nn.ReLU(z)
 
-            h = nn.ReLU(h)
 
         ### Second layer ###
+
+
+        h = nn.Linear(z, self.weights)
 
         return h # A node with shape (batch_size, 5) containing predicted scores (logits)
 
@@ -432,7 +439,7 @@ class LanguageIDModel(object):
         """
         "*** YOUR CODE HERE ***"
 
-        accuracy_wanted = 0.83
+        accuracy_wanted = 0.86
         while True:
 
             for x, y in dataset.iterate_once(self.batch_size):
@@ -443,23 +450,32 @@ class LanguageIDModel(object):
                 # get gradients of the loss
                 # update x or weights accordingly idk which
 
+                ## Current version of the gradients
+
+                gwx, gwh, gw = nn.gradients(loss, [self.W_x, self.W_hidden, self.weights])
+
+
                 ## This is the version for the two layers
-                gw1, gb1, gw2, gb2, h1, h2 = nn.gradients(loss, [self.W1, self.bias1, self.W2, self.bias2, self.W_hidden1, self.W_hidden2])
+                # gw1, gb1, gw2, gb2, h1, h2 = nn.gradients(loss, [self.W1, self.bias1, self.W2, self.bias2, self.W_hidden1, self.W_hidden2])
 
                 ## This is the version for three layers
                 # gw1, gb1, gw2, gb2, gw3, gb3 = nn.gradients(loss, [self.weights1, self.bias1, self.weights2, self.bias2, self.weights3, self.bias3])
 
-                self.W1.update(gw1, self.learning_rate)
+                self.W_x.update(gwx, self.learning_rate)
+                self.W_hidden.update(gwh, self.learning_rate)
+                self.weights.update(gw, self.learning_rate)
 
-                self.bias1.update(gb1, self.learning_rate)
+                # self.W1.update(gw1, self.learning_rate)
 
-                self.W2.update(gw2, self.learning_rate)
+                # self.bias1.update(gb1, self.learning_rate)
 
-                self.bias2.update(gb2, self.learning_rate)
+                # self.W2.update(gw2, self.learning_rate)
 
-                self.W_hidden1.update(h1, self.learning_rate)
+                # self.bias2.update(gb2, self.learning_rate)
+
+                # self.W_hidden1.update(h1, self.learning_rate)
                 
-                self.W_hidden2.update(h2, self.learning_rate)
+                # self.W_hidden2.update(h2, self.learning_rate)
 
                 ## Comment these out if you want to use only two layers
                 # self.weights3.update(gw3, self.learning_rate)
